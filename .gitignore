@@ -35,3 +35,13 @@ sites
 #dirs
 boost/
 java/
+
+# emeralddb configs
+src/.deps/
+/autom4te.cache/
+src/aclocal.m4
+src/*.log
+src/config*
+src/Makefile
+src/Makefile.in
+src/stamp-h1
