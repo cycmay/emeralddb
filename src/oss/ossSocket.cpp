@@ -578,3 +578,23 @@ int _ossSocket::getPort(const char *pServiceName, unsigned short &port)
         port = (unsigned short) ntohs(servinfo->s_port);
     return rc;
 }
+
+int _ossSocket::disableNagle ()
+{
+   int rc = EDB_OK ;
+   int temp = 1 ;
+   rc = setsockopt ( _fd, IPPROTO_TCP, TCP_NODELAY, (char *) &temp,
+                     sizeof ( int ) ) ;
+   if ( rc )
+   {
+      PD_LOG ( PDWARNING, "Failed to setsockopt, rc = %d", SOCKET_GETLASTERROR ) ;
+   }
+
+   rc = setsockopt ( _fd, SOL_SOCKET, SO_KEEPALIVE, (char *) &temp,
+                     sizeof ( int ) ) ;
+   if ( rc )
+   {
+      PD_LOG ( PDWARNING, "Failed to setsockopt, rc = %d", SOCKET_GETLASTERROR ) ;
+   }
+   return rc ;
+}

@@ -37,7 +37,7 @@ struct _signalInfo
 
 typedef struct _signalInfo _signalInfo;
 
-static _signalInfo singalHandleMap[]={
+static _signalInfo signalHandleMap[]={
     { "Unknow", 0 },
     { "SIGHUP", 1 },     //1
     { "SIGINT", 1 },     //2
@@ -112,6 +112,7 @@ static void pmdSignalHandler(int sigNum)
     {
         if(signalHandleMap[sigNum].handle)
         {
+            PD_LOG(PDEVENT, "signal %d", sigNum);
             EDB_SHUTDOWN_DB;
         }
     }
@@ -124,7 +125,7 @@ static int pmdSetupSignalHandler()
     memset(&newact, 0, sizeof(newact));
     sigemptyset(&newact.sa_mask);
     newact.sa_flags = 0;
-    newact.sa_handler = (_sighandler_t)pmdSignalHandler;
+    newact.sa_handler = (__sighandler_t)pmdSignalHandler;
     for(int i=0; i<PMD_MAX_SIGNALS; ++i)
     {
         sigaction(i+1, &newact, NULL);
@@ -139,7 +140,7 @@ int pmdMasterThreadMain(int argc, char **argv)
     EDB_KRCB *krcb = pmdGetKRCB();
     
     // signal handler
-    rc = pmdSetupSignalHanlder();
+    rc = pmdSetupSignalHandler();
     PD_RC_CHECK(rc, PDERROR, "Failed to setup signal handler, rc = %d", rc);
 
     // arguments
@@ -159,4 +160,8 @@ done:
 error:
     goto done;
 
+}
+int main(int argc, char **argv)
+{
+    return pmdMasterThreadMain(argc, argv);
 }

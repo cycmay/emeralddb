@@ -53,7 +53,7 @@ class pmdOptions
         int init(int argc, char** argv);
 
     public:
-        inline char *getDBpath()
+        inline char *getDBPath()
         {
             return _dbPath;
         }

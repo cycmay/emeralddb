@@ -12,7 +12,7 @@ enum EDB_DB_STATUS
 #define EDB_IS_DB_NORMAL (EDB_DB_NORMAL == pmdGetKRCB()->getDBStatus())
 #define EDB_IS_DB_DOWN (EDB_DB_SHUTDOWN == pmdGetKRCB()->getDBStatus() || \
                             EDB_DB_PANIC == pmdGetKRCB()->getDBStatus())
-#define EDB_IS_DB_UP(!EDB_IS_DB_DOWN)
+#define EDB_IS_DB_UP (!EDB_IS_DB_DOWN)
 #define EDB_SHUTDOWN_DB {pmdGetKRCB()->setDBStatus(EDB_DB_SHUTDOWN);}
 #endif
 
@@ -53,7 +53,7 @@ class EDB_KRCB
         // get log file path
         inline const char *getLogFilePath()
         {
-            retrun _logFilePath;
+            return _logFilePath;
         }
         // get sevice name
         inline const char *getSvcName()
@@ -93,7 +93,7 @@ class EDB_KRCB
         // setup from pmdOptions
         int init(pmdOptions *options);
 
-}
+};
 
 extern EDB_KRCB pmd_krcb;
 
