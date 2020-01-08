@@ -69,7 +69,7 @@ int Edb::readInput(const char *pPrompt, int numIndent)
     {
         std::cout << TAB;
     }
-    // print "edb>>"
+    // print "edb>    "
     std::cout << pPrompt << ">  ";
     // read a line from cmd
     readLine(_cmdBuffer, CMD_BUFFER_SIZE-1);
@@ -99,8 +99,8 @@ int Edb::readInput(const char *pPrompt, int numIndent)
 char *Edb::readLine(char *p, int length)
 {
     int len = 0;
-    int ch;
-    while((ch=getchar() != NEW_LINE))
+    char ch;
+    while((ch=getchar()) != NEW_LINE)
     {
         switch (ch)
         {
@@ -122,7 +122,7 @@ void Edb::split(const std::string &text, char delim, std::vector<std::string> &r
     size_t strLen = text.length();
     size_t first = 0;
     size_t pos = 0;
-    for(first = 0; first<strLen; ++first)
+    for(first = 0; first<strLen; first=pos+1)
     {
         pos = first;
         while(text[pos]!=delim && pos<strLen)

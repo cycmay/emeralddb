@@ -3,6 +3,7 @@
     "files.associations": {
         "ios": "cpp",
         "random": "cpp",
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "*.ipp": "cpp"
     }
 }

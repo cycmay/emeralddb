@@ -2,6 +2,7 @@
 #include "pmd.hpp"
 #include "pd.hpp"
 #include "pmdOptions.hpp"
+#include "pmdTcpListener.hpp"
 
 // get user input's information
 static int pmdResolveArguments(int argc, char **argv)
@@ -163,5 +164,6 @@ error:
 }
 int main(int argc, char **argv)
 {
-    return pmdMasterThreadMain(argc, argv);
+    pmdTcpListenerEntryPoint();
+    // return pmdMasterThreadMain(argc, argv);
 }
