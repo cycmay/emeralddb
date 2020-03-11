@@ -25,7 +25,7 @@ const char * getPDLevelDesp(PDLEVEL level)
 }
 
 const static char *PD_LOG_HEADER_FORMAT="%04d-%02d-%02d-%02d:%02d:%02d:%06d\
-Level:%s" OSS_NEWLINE"PID:%-37dTID:%d" OSS_NEWLINE"Funtion:%-32sLine:%d"\
+Level:%s" OSS_NEWLINE"PID:%-37dTID:%d" OSS_NEWLINE"Function:%-32sLine:%d"\
  OSS_NEWLINE"File:%s" OSS_NEWLINE"Message:" OSS_NEWLINE"%s" OSS_NEWLINE OSS_NEWLINE;
 
 PDLEVEL _curPDLevel = PD_DFT_DIAGLEVEL;

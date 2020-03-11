@@ -1,11 +1,17 @@
 #include "core.hpp"
 #include "command.hpp"
 #include "commandFactory.hpp"
+#include "pd.hpp"
+#include "msg.hpp"
 
 COMMAND_BEGIN   
+COMMAND_ADD(COMMAND_INSERT, InsertCommand)
+COMMAND_ADD(COMMAND_QUERY, QueryCommand)
+COMMAND_ADD(COMMAND_DELETE, DeleteCommand)
 COMMAND_ADD(COMMAND_CONNECT,ConnectCommand)
 COMMAND_ADD(COMMAND_QUIT,QuitCommand)
 COMMAND_ADD(COMMAND_HELP,HelpCommand)
+COMMAND_ADD(COMMAND_SNAPSHOT, SnapshotCommand)
 COMMAND_END
 
 extern int gQuit;
@@ -148,6 +154,7 @@ int ICommand::recvReply(ossSocket &sock)
 
 int ICommand::sendOrder(ossSocket &sock, OnMsgBuild onMsgBuild)
 {
+  // OnMsgBuild 是一个函数指针，指向的是要执行的函数
     int ret = EDB_OK;
     bson::BSONObj bsonData;
     try
@@ -161,11 +168,15 @@ int ICommand::sendOrder(ossSocket &sock, OnMsgBuild onMsgBuild)
     memset(_sendBuf, 0, SEND_BUF_SIZE);
     int size = SEND_BUF_SIZE;
     char *pSendBuf = _sendBuf;
+    // _sendBuf 是类Command的一块私有内存空间 用于缓冲将要发送的字节
+    // onMsgBuild 是用户自定义的函数，不同的命令发送不同的函数。主要功能都是将数据打包成MsgReply数据结构并保存到
+    // pSendBuf指向的内存空间
     ret = onMsgBuild(&pSendBuf, &size, bsonData);
     if(ret)
     {
         return getError(EDB_MSG_BUILD_FAILED);
     }
+    // 发送pSendBuf的数据，*(int *)pSendBuf是前int个字节 表示数据包的长度
     ret = sock.send(pSendBuf, *(int *)pSendBuf);
     if(ret)
     {
@@ -174,16 +185,137 @@ int ICommand::sendOrder(ossSocket &sock, OnMsgBuild onMsgBuild)
     return ret;
 }
 
+
+// 发送操作指令
 int ICommand::sendOrder(ossSocket &sock, int opCode)
 {
     int ret = EDB_OK;
     memset(_sendBuf, 0, SEND_BUF_SIZE);
-    char * pSendBuf = _sendBuf;
-    const char *pStr = "hello world";
-    *(int *)pSendBuf = strlen(pStr) + 1 + sizeof(int);
-    memcpy(&pSendBuf[sizeof(int)], pStr, strlen(pStr)+1);
+
+    char * pSendBuf     = _sendBuf;
+    MsgHeader *header   = (MsgHeader *)pSendBuf;
+    header->messageLen  = sizeof(MsgHeader);
+    header->opCode      = opCode;
+
     ret = sock.send(pSendBuf, *(int *)pSendBuf);
+    return ret;
 }
+
+
+/******************************InsertCommand**********************************************/
+int InsertCommand::handleReply()
+{
+   MsgReply * msg = (MsgReply*)_recvBuf;
+   int returnCode = msg->returnCode;
+   int ret = getError(returnCode);
+   return ret;
+}
+
+int InsertCommand::execute( ossSocket & sock, std::vector<std::string> & argVec )
+{
+   int rc = EDB_OK;
+   if( argVec.size() <1 )
+   {
+      return getError(EDB_INSERT_INVALID_ARGUMENT);
+   }
+   _jsonString = argVec[0];
+     if( !sock.isConnected() )
+   {
+      return getError(EDB_SOCK_NOT_CONNECT);
+   }
+
+   rc = sendOrder( sock, msgBuildInsert );
+   PD_RC_CHECK ( rc, PDERROR, "Failed to send order, rc = %d", rc ) ;
+
+   rc = recvReply( sock );
+   PD_RC_CHECK ( rc, PDERROR, "Failed to receive reply, rc = %d", rc ) ;
+   rc = handleReply();
+   PD_RC_CHECK ( rc, PDERROR, "Failed to receive reply, rc = %d", rc ) ;
+done :
+   return rc;
+error :
+   goto done ;
+}
+
+// QUERY
+/******************************QueryCommand**********************************************/
+int QueryCommand::handleReply()
+{
+  // 处理接收到的数据，数据在_recvBuf, 根据通信协议的数据结构MsgReply进行解析
+   MsgReply * msg = (MsgReply*)_recvBuf;
+   int returnCode = msg->returnCode;
+   int ret = getError(returnCode);
+   if(ret)
+   {
+      return ret;
+   }
+   if ( msg->numReturn )
+   {
+      bson::BSONObj bsonData = bson::BSONObj( &(msg->data[0]) );
+      std::cout << bsonData.toString() << std::endl;
+   }
+   return ret;
+}
+
+int QueryCommand::execute( ossSocket & sock, std::vector<std::string> & argVec )
+{
+   int rc = EDB_OK;
+   if( argVec.size() <1 )
+   {
+      return getError(EDB_QUERY_INVALID_ARGUMENT);
+   }
+   _jsonString = argVec[0];
+   if( !sock.isConnected() )
+   {
+      return getError(EDB_SOCK_NOT_CONNECT);
+   }
+
+   rc = sendOrder( sock, msgBuildQuery );
+   PD_RC_CHECK ( rc, PDERROR, "Failed to send order, rc = %d", rc ) ;
+   rc = recvReply( sock );
+   PD_RC_CHECK ( rc, PDERROR, "Failed to receive reply, rc = %d", rc ) ;
+   rc = handleReply();
+   PD_RC_CHECK ( rc, PDERROR, "Failed to receive reply, rc = %d", rc ) ;
+done :
+   return rc;
+error :
+   goto done ;
+}
+
+/******************************DeleteCommand**********************************************/
+int DeleteCommand::handleReply()
+{
+   MsgReply * msg = (MsgReply*)_recvBuf;
+   int returnCode = msg->returnCode;
+   int ret = getError(returnCode);
+   return ret;
+}
+
+int DeleteCommand::execute( ossSocket & sock, std::vector<std::string> & argVec )
+{
+   int rc = EDB_OK;
+   if( argVec.size() < 1 )
+   {
+      return getError(EDB_DELETE_INVALID_ARGUMENT);
+   }
+   _jsonString = argVec[0];
+   if( !sock.isConnected() )
+   {
+      return getError(EDB_SOCK_NOT_CONNECT);
+   }
+   rc = sendOrder( sock, msgBuildDelete );
+   PD_RC_CHECK ( rc, PDERROR, "Failed to send order, rc = %d", rc ) ;
+   rc = recvReply( sock );
+   PD_RC_CHECK ( rc, PDERROR, "Failed to receive reply, rc = %d", rc ) ;
+   rc = handleReply();
+   PD_RC_CHECK ( rc, PDERROR, "Failed to receive reply, rc = %d", rc ) ;
+done :
+   return rc;
+error :
+   goto done ;
+}
+
+
 
 /****************************Connect Command**********************************/
 int ConnectCommand::execute(ossSocket &sock, std::vector<std::string> &argVec)
@@ -211,7 +343,7 @@ int ConnectCommand::execute(ossSocket &sock, std::vector<std::string> &argVec)
 int QuitCommand::handleReply()
 {
     int ret = EDB_OK;
-    // gQuit = 1;
+    gQuit = 1;
     return ret;
 }
 
@@ -222,11 +354,13 @@ int QuitCommand::execute(ossSocket &sock, std::vector<std::string> &argVec)
     {
         return getError(EDB_SOCK_NOT_CONNECT);
     }
-    ret = sendOrder(sock, 0);
-    // sock.close();
+    ret = sendOrder(sock, OP_DISCONNECT);
+    sock.close();
     ret = handleReply();
     return ret;
 }
+
+/****************************Help Command**********************************/
 
 int HelpCommand::execute(ossSocket &sock, std::vector<std::string> &argVec)
 {
@@ -241,4 +375,44 @@ int HelpCommand::execute(ossSocket &sock, std::vector<std::string> &argVec)
     printf("%s -- quitting command\n\n", COMMAND_QUIT);
     printf("Type \"help\" command for help\n");
     return ret;
+}
+
+/*********************************SnapshotCommand******************************************/
+int SnapshotCommand::handleReply()
+{
+   int ret = EDB_OK;
+   MsgReply * msg = (MsgReply*)_recvBuf;
+   int returnCode = msg->returnCode;
+   ret = getError(returnCode);
+   if(ret)
+   {
+      return ret;
+   }
+   bson::BSONObj bsonData = bson::BSONObj( &(msg->data[0]) );
+   printf( "insert times is %d\n", bsonData.getIntField("insertTimes") );
+   printf( "del times is %d\n", bsonData.getIntField("delTimes") );
+   printf( "query times is %d\n", bsonData.getIntField("queryTimes") );
+   printf( "server run time is %dm\n", bsonData.getIntField("serverRunTime") );
+
+   return ret;
+}
+
+int SnapshotCommand::execute( ossSocket & sock, std::vector<std::string> &argVec)
+{
+   int rc = EDB_OK;
+   if( !sock.isConnected() )
+   {
+      return getError(EDB_SOCK_NOT_CONNECT);
+   }
+
+   rc = sendOrder( sock, OP_SNAPSHOT );
+   PD_RC_CHECK ( rc, PDERROR, "Failed to send order, rc = %d", rc ) ;
+   rc = recvReply( sock );
+   PD_RC_CHECK ( rc, PDERROR, "Failed to receive reply, rc = %d", rc ) ;
+   rc = handleReply();
+   PD_RC_CHECK ( rc, PDERROR, "Failed to receive reply, rc = %d", rc ) ;
+done :
+   return rc;
+error :
+   goto done ;
 }

@@ -2,7 +2,7 @@
 #include "pmd.hpp"
 #include "pd.hpp"
 #include "pmdOptions.hpp"
-#include "pmdTcpListener.hpp"
+#include "pmdEDUMgr.hpp"
 
 // get user input's information
 static int pmdResolveArguments(int argc, char **argv)
@@ -136,9 +136,11 @@ static int pmdSetupSignalHandler()
 
 int pmdMasterThreadMain(int argc, char **argv)
 {
-    int rc = EDB_OK;
+    int rc              = EDB_OK;
     //  获取全局的内核控制模块
-    EDB_KRCB *krcb = pmdGetKRCB();
+    EDB_KRCB *krcb      = pmdGetKRCB();
+    pmdEDUMgr * eduMgr  = krcb->getEDUMgr();
+    EDUID agentEDU      = PMD_INVALID_EDUID;
     
     // signal handler
     rc = pmdSetupSignalHandler();
@@ -151,6 +153,12 @@ int pmdMasterThreadMain(int argc, char **argv)
         goto done;
     }
     PD_RC_CHECK(rc, PDERROR, "Failed to resolve argumets, rc = %d", rc);
+
+    // start system agent EDU
+    rc = eduMgr->startEDU(EDU_TYPE_TCPLISTENER, NULL, &agentEDU);
+    PD_RC_CHECK(rc, PDERROR, "Failed to start TCP listener EDU, rc = %d", rc);
+
+    
     while(EDB_IS_DB_UP)
     {
         sleep(1);
@@ -164,6 +172,6 @@ error:
 }
 int main(int argc, char **argv)
 {
-    pmdTcpListenerEntryPoint();
-    // return pmdMasterThreadMain(argc, argv);
+    // pmdTcpListenerEntryPoint();
+    return pmdMasterThreadMain(argc, argv);
 }

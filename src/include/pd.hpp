@@ -44,6 +44,9 @@
 #define EDB_CHECK(cond, str) {if(cond) {}}
 #endif
 
+#define EDB_ASSERT(cond, str) {if(cond){}}
+#define EDB_CHEK(cond, str) {if(cond){}}
+
 enum PDLEVEL
 {
     PDSEVERE    =0,

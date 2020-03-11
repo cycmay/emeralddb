@@ -39,7 +39,7 @@ class ossQueue
             boost::mutex::scoped_lock lock(_mutex);
             if(_queue.empty())
                 return false;
-            value = queue.front();
+            value = _queue.front();
             _queue.pop();
             return true;
         }
@@ -55,7 +55,7 @@ class ossQueue
             _queue.pop();
         }
 
-        bool time_wait_and_pop(Data &value, long long millsec)
+        bool timed_wait_and_pop(Data &value, long long millsec)
         {
             boost::system_time const timeout = boost::get_system_time() + 
                 boost::posix_time::milliseconds(millsec);

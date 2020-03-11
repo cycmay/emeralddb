@@ -4,6 +4,13 @@
         "ios": "cpp",
         "random": "cpp",
         "*.tcc": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "condition_variable": "cpp",
+        "bitset": "cpp",
+        "functional": "cpp",
+        "__locale": "cpp",
+        "__string": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
     }
 }

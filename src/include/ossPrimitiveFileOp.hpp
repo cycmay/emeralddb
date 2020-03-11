@@ -70,6 +70,10 @@ class ossPrimitiveFileOp
         void seekToEnd(void);
         int getSize(offsetType * const pFileSize);
 
+        handleType getHandle( void ) const
+        {
+            return _fileHandle ;
+        }
 };
 
 #endif

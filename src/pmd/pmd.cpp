@@ -12,5 +12,5 @@ int EDB_KRCB::init(pmdOptions *options)
     strncpy(_pdDiagLogPath, getLogFilePath(), sizeof(_pdDiagLogPath));
     setSvcName(options->getServiceName());
     setMaxPool(options->getMaxPool());
-    return EDB_OK;
+    return _rtnMgr.rtnInitialize();
 }

@@ -2,6 +2,9 @@
 #define PMD_HPP__
 
 #include "core.hpp"
+#include "pmdEDUMgr.hpp"
+#include "rtn.hpp"
+
 enum EDB_DB_STATUS
 {
     EDB_DB_NORMAL = 0,
@@ -26,7 +29,10 @@ class EDB_KRCB
         char            _logFilePath[OSS_MAX_PATHSIZE+1];
         int             _maxPool;
         char            _svcName[NI_MAXSERV+1];
+    private:
         EDB_DB_STATUS   _dbStatus;
+        pmdEDUMgr       _eduMgr;
+        rtn             _rtnMgr;
 
     public:
         EDB_KRCB()
@@ -39,6 +45,16 @@ class EDB_KRCB
         }
         // destructor
         ~EDB_KRCB(){}
+        // get edumgr
+        inline pmdEDUMgr *getEDUMgr()
+        {
+            return &_eduMgr;
+        } 
+        // get rtnMgr
+        inline rtn *getRtnMgr()
+        {
+            return &_rtnMgr;
+        }
 
         // get database status
         inline EDB_DB_STATUS getDBStatus()

@@ -1,5 +1,5 @@
 #!/bin/sh
-rm configure.in
+rm configure.ac
 autoscan
 cp configure.in.bak configure.ac
 aclocal
