@@ -34,7 +34,7 @@ int rtn::rtnInitialize()
 		PD_LOG(PDERROR, "Failed to new ixmBucketManager");
 		goto error;
 	}
-	_dmsFile = new(std::nothrow)dmsFile();
+	_dmsFile = new(std::nothrow)dmsFile(_ixmBucketMgr);
 	if(!_dmsFile)
 	{
 		rc = EDB_OOM;

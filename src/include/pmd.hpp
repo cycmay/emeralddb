@@ -4,6 +4,7 @@
 #include "core.hpp"
 #include "pmdEDUMgr.hpp"
 #include "rtn.hpp"
+#include "monCB.hpp"
 
 enum EDB_DB_STATUS
 {
@@ -33,6 +34,7 @@ class EDB_KRCB
         EDB_DB_STATUS   _dbStatus;
         pmdEDUMgr       _eduMgr;
         rtn             _rtnMgr;
+        MonAppCB        _monAppCB;
 
     public:
         EDB_KRCB()
@@ -80,6 +82,11 @@ class EDB_KRCB
         inline int getMaxPool()
         {
             return _maxPool;
+        }
+        // get monitor app cb
+        inline MonAppCB & getMonAppCB()
+        {
+            return _monAppCB;
         }
         // setup database status
         inline void setDBStatus(EDB_DB_STATUS status)

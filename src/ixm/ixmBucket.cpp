@@ -56,6 +56,7 @@ int ixmBucketManager::findIndex(BSONObj &record, dmsRecordID &recordID)
 	PD_RC_CHECK(rc, PDERROR, "Failed to process data. rc = %d", rc);
 	rc = _bucket[random]->findIndex(hashNum, eleHash);
 	PD_RC_CHECK(rc, PDERROR, "Failed to find index, rc = %d", rc);
+    recordID = eleHash.recordID;
 
 error:
 	goto done;
@@ -121,6 +122,7 @@ int ixmBucketManager::ixmBucket::isIDExist(unsigned int hashNum,
 	
 	// 对每个桶进行加锁
 	_mutex.get_shared();
+	// 检查桶内是否已经存在相同hash值的元素
 	ret = _bucketMap.equal_range(hashNum);
 	sourEle = BSONElement(eleHash.data);
 	for(std::multimap<unsigned int, ixmEleHash>::iterator it = ret.first;
@@ -132,11 +134,11 @@ int ixmBucketManager::ixmBucket::isIDExist(unsigned int hashNum,
 		{
 			if(sourEle.valuesize() == destEle.valuesize())
 			{
-				if(!memcpy((void *)sourEle.value(), destEle.value(),
+				if(!memcmp(sourEle.value(), destEle.value(),
 							destEle.valuesize()))
 				{
 					rc = EDB_IXM_ID_EXIST;
-					PD_LOG(PDERROR, "record _id does exist");
+					PD_LOG(PDERROR, "record _id:%d had existed", sourEle.value());
 					goto error;
 				}
 			}
@@ -154,13 +156,10 @@ int ixmBucketManager::ixmBucket::createIndex(unsigned int hashNum,
 {
 	int rc = EDB_OK;
 	_mutex.get();
-	_bucketMap.insert(
-		pair<unsigned int, ixmEleHash>(hashNum, eleHash));
-
-done:
-	return rc;
-error:
-	goto done;
+   _bucketMap.insert (
+      pair<unsigned int, ixmEleHash> ( hashNum, eleHash ) ) ;
+   _mutex.release () ;
+   return rc ;
 }
 
 int ixmBucketManager::ixmBucket::findIndex(unsigned int hashNum, 
@@ -186,7 +185,7 @@ int ixmBucketManager::ixmBucket::findIndex(unsigned int hashNum,
 		{
 			if(sourEle.valuesize() == destEle.valuesize())
 			{
-				if(!memcpy((void *)sourEle.value(), destEle.value(),
+				if(!memcmp(sourEle.value(), destEle.value(),
 							destEle.valuesize()))
 				{
 					eleHash.recordID = exsitEle.recordID;
@@ -229,7 +228,7 @@ int ixmBucketManager::ixmBucket::removeIndex(unsigned int hashNum,
 		{
 			if(sourEle.valuesize() == destEle.valuesize())
 			{
-				if(!memcpy((void *)sourEle.value(), destEle.value(),
+				if(!memcmp(sourEle.value(), destEle.value(),
 							destEle.valuesize()))
 				{
 					eleHash.recordID = exsitEle.recordID;

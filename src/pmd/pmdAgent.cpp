@@ -5,6 +5,7 @@
 #include "../bson/src/bson.h"
 #include "pmd.hpp"
 #include "msg.hpp"
+#include "monCB.hpp"
 
 using namespace std;
 using namespace bson;
@@ -84,6 +85,10 @@ static int pmdProcessAgentRequest ( char *pReceiveBuffer,
             }
             // insert record
             rc = rtnMgr->rtnInsert(insertor);
+            if(!rc)
+            {
+               krcb->getMonAppCB().increaseInsertTimes();
+            }
          }
          catch ( std::exception &e )
          {
@@ -113,6 +118,10 @@ static int pmdProcessAgentRequest ( char *pReceiveBuffer,
                   recordID.toString().c_str() ) ;
 
          rc = rtnMgr->rtnFind(recordID, retObj);
+         if(!rc)
+         {
+            krcb->getMonAppCB().increaseQueryTimes();
+         }
       }
       else if ( OP_DELETE == opCode )
       {
@@ -127,23 +136,27 @@ static int pmdProcessAgentRequest ( char *pReceiveBuffer,
             rc = EDB_INVALIDARG ;
             goto error ;
          }
-
-         rc = rtnMgr->rtnRemove(recordID);
          PD_LOG ( PDEVENT,
                   "Delete condition: %s",
                   recordID.toString().c_str() ) ;
+         rc = rtnMgr->rtnRemove(recordID);
+         if(!rc)
+         {
+            krcb->getMonAppCB().increaseDelTimes();
+         }
       }
       else if ( OP_SNAPSHOT == opCode )
       {
          PD_LOG ( PDDEBUG,
                   "Snapshot request received" ) ;
+         MonAppCB monAppCB = krcb->getMonAppCB();
          try
          {
             BSONObjBuilder b ;
-            b.append ( "insertTimes", 100 ) ;
-            b.append ( "delTimes", 1000 ) ;
-            b.append ( "queryTimes", 2000 ) ;
-            b.append ( "serverRunTime", 100 ) ;
+            b.append ( "insertTimes", monAppCB.getInsertTimes()) ;
+            b.append ( "delTimes", monAppCB.getDelTimes() ) ;
+            b.append ( "queryTimes", monAppCB.getQueryTimes() ) ;
+            b.append ( "serverRunTime", monAppCB.getServerRunTime() ) ;
             retObj = b.obj () ;
          }
          catch ( std::exception &e )

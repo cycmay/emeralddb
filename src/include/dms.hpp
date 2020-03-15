@@ -105,7 +105,7 @@ private:
 	ixmBucketManager 	*_ixmBucketMgr;
 
 public:
-	dmsFile(ixmBucketManager ixmBucketMgr);
+	dmsFile(ixmBucketManager *ixmBucketMgr);
 	~dmsFile();
 	// initialize the dms file;
 	int initialize(const char *pFileName);
