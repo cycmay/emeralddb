@@ -3,7 +3,7 @@
 
 #include "ossLatch.hpp"
 #include "ossMmapFile.hpp"
-#include "../bson/src/bson.h"
+#include "bson.h"
 #include "dmsRecord.hpp"
 #include "ixmBucket.hpp"
 #include <vector>

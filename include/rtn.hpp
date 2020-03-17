@@ -1,7 +1,7 @@
 #ifndef RTN_HPP__
 #define RTN_HPP__
 
-#include "../bson/src/bson.h"
+#include "bson.h"
 #include "dms.hpp"
 #include "ixmBucket.hpp"
 // define the storage file name

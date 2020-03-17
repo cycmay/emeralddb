@@ -35,6 +35,10 @@ sites
 #dirs
 boost/
 java/
+build/
+bin/
+lib/
+
 
 # emeralddb configs
 /src/.deps/*

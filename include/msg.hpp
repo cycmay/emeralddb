@@ -1,7 +1,7 @@
 #ifndef MSG_HPP__
 #define MSG_HPP__
 
-#include "../bson/src/bson.h"
+#include "bson.h"
 
 #define OP_REPLY			1
 #define OP_INSERT			2

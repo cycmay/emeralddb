@@ -16,6 +16,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef JSON_H
+#define JSON_H
+
 #pragma once
 
 #include "../bson.h"
@@ -38,3 +41,4 @@ namespace bson {
     BSONObj fromjson(const char *str, int* len=NULL);
 
 } // namespace mongo
+#endif

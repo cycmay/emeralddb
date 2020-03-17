@@ -2,7 +2,7 @@
 #define IXMBUCKET_HPP__
 
 #include "ossLatch.hpp"
-#include "../bson/src/bson.h"
+#include "bson.h"
 #include <map>
 #include "dmsRecord.hpp"
 

@@ -2,7 +2,7 @@
 #define COMMAND_HPP__
 
 #include "core.hpp"
-#include <bson/src/util/json.h>
+#include "util/json.h"
 #include "ossSocket.hpp"
 
 #define COMMAND_QUIT        "quit"

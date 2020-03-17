@@ -15,7 +15,8 @@
  *    limitations under the License.
  */
 
-#pragma once
+#ifndef BSONOBJ_H
+#define BSONOBJ_H
 
 #include <boost/intrusive_ptr.hpp>
 #include <set>
@@ -501,3 +502,4 @@ namespace bson {
     };
 
 }
+#endif

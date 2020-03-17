@@ -2,7 +2,7 @@
 #include "pmdEDUMgr.hpp"
 #include "pmdEDU.hpp"
 #include "ossSocket.hpp"
-#include "../bson/src/bson.h"
+#include "bson.h"
 #include "pmd.hpp"
 #include "msg.hpp"
 #include "monCB.hpp"
