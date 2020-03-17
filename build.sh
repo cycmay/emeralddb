@@ -1,4 +1,11 @@
 #!/bin/bash
-cd src
-chmod 755 build.sh
-./build.sh
+mkdir build
+mkdir bin
+mkdir lib
+mkdir 
+
+cd build
+cmake ..
+make
+cd ../
+
